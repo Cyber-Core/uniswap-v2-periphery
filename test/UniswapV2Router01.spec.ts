@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai'
-import { Contract } from 'ethers'
+import {Contract, providers, Wallet} from 'ethers'
 import { AddressZero, Zero, MaxUint256 } from 'ethers/constants'
 import { BigNumber, bigNumberify } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
@@ -21,13 +21,17 @@ enum RouterVersion {
 
 describe('UniswapV2Router{01,02}', () => {
   for (const routerVersion of Object.keys(RouterVersion)) {
-    const provider = new MockProvider({
-      hardfork: 'istanbul',
-      mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-      gasLimit: 9999999
-    })
-    const [wallet] = provider.getWallets()
-    const loadFixture = createFixtureLoader(provider, [wallet])
+    // const provider = new MockProvider({
+    //   hardfork: 'istanbul',
+    //   mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
+    //   gasLimit: 9999999
+    // })
+    // const [wallet] = provider.getWallets()
+    // const loadFixture = createFixtureLoader(provider, [wallet])
+
+
+    const provider = new providers.JsonRpcProvider("http://127.0.0.1:8545", {chainId:111, name:""});
+    const wallet = new Wallet("0xa45bb678781eaebed1eaca0921efb31aaf66677345d1f60bf1af63d105548ead", provider)
 
     let token0: Contract
     let token1: Contract
@@ -39,7 +43,9 @@ describe('UniswapV2Router{01,02}', () => {
     let WETHPair: Contract
     let routerEventEmitter: Contract
     beforeEach(async function() {
-      const fixture = await loadFixture(v2Fixture)
+      // const fixture = await loadFixture(v2Fixture)
+      const fixture = await v2Fixture(provider, [wallet])
+
       token0 = fixture.token0
       token1 = fixture.token1
       WETH = fixture.WETH
@@ -352,11 +358,11 @@ describe('UniswapV2Router{01,02}', () => {
 
         it('gas', async () => {
           // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
-          await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
+          // await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
           await pair.sync(overrides)
 
           await token0.approve(router.address, MaxUint256)
-          await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
+          // await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
           const tx = await router.swapExactTokensForTokens(
             swapAmount,
             0,
@@ -499,11 +505,11 @@ describe('UniswapV2Router{01,02}', () => {
           await WETHPair.mint(wallet.address, overrides)
 
           // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
-          await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
+          // await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
           await pair.sync(overrides)
 
           const swapAmount = expandTo18Decimals(1)
-          await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
+          // await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
           const tx = await router.swapExactETHForTokens(
             0,
             [WETH.address, WETHPartner.address],
