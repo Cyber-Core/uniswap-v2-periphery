@@ -5,7 +5,7 @@ import { BigNumber, bigNumberify } from 'ethers/utils'
 import { MaxUint256 } from 'ethers/constants'
 import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 
-import { v2Fixture } from './shared/fixtures'
+import { V2Fixture, v2Fixture } from './shared/fixtures'
 import { expandTo18Decimals, getApprovalDigest, MINIMUM_LIQUIDITY } from './shared/utilities'
 
 import DeflatingERC20 from '../build/DeflatingERC20.json'
@@ -33,11 +33,15 @@ describe('UniswapV2Router02', () => {
   let token0: Contract
   let token1: Contract
   let router: Contract
+  let fixture: V2Fixture
   beforeEach(async function() {
-    const fixture = await v2Fixture(provider, [wallet])
+    fixture = await v2Fixture(provider, [wallet])
     token0 = fixture.token0
     token1 = fixture.token1
     router = fixture.router02
+  })
+
+  it('deploy contracts', async () => {
     console.log("tokenA", fixture.token0.address)
     console.log("tokenB", fixture.token1.address)
     console.log("WETH", fixture.WETH.address)
@@ -48,6 +52,16 @@ describe('UniswapV2Router02', () => {
     console.log("router02", fixture.router02.address)
     console.log("routerEventEmitter", fixture.routerEventEmitter.address)
     console.log("migrator", fixture.migrator.address)
+    console.log()
+    console.log("Copy next lines to `update_contracts.sh` from uniswap-interface.git repository")
+    console.log("--------------- START OF COPIED LINES -----------------")
+    console.log("update_address MIGRATOR_ADDRESS", fixture.migrator.address)
+    console.log("update_address FACTORY_ADDRESS", fixture.factoryV2.address)
+    console.log("update_address ROUTER1_ADDRESS", fixture.router01.address)
+    console.log("update_address ROUTER_ADDRESS", fixture.router02.address)
+    console.log("update_address V1_FACTORY_ADDRESS", fixture.factoryV1.address)
+    console.log("update_address WETH_ADDRESS", fixture.WETH.address)
+    console.log("---------------- END OF COPIED LINES ------------------")
   })
 
   it('quote', async () => {

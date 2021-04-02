@@ -20,7 +20,7 @@ const overrides = {
   gasLimit: 9999999
 }
 
-interface V2Fixture {
+export interface V2Fixture {
   token0: Contract
   token1: Contract
   WETH: Contract
