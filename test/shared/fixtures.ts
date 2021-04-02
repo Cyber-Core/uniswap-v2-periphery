@@ -1,5 +1,5 @@
 import { Wallet, Contract } from 'ethers'
-import { Web3Provider } from 'ethers/providers'
+import { Web3Provider, JsonRpcProvider } from 'ethers/providers'
 import { deployContract } from 'ethereum-waffle'
 
 import { expandTo18Decimals } from './utilities'
@@ -20,7 +20,7 @@ const overrides = {
   gasLimit: 9999999
 }
 
-interface V2Fixture {
+export interface V2Fixture {
   token0: Contract
   token1: Contract
   WETH: Contract
@@ -37,7 +37,7 @@ interface V2Fixture {
   WETHPair: Contract
 }
 
-export async function v2Fixture(provider: Web3Provider, [wallet]: Wallet[]): Promise<V2Fixture> {
+export async function v2Fixture(provider: JsonRpcProvider, [wallet]: Wallet[]): Promise<V2Fixture> {
   // deploy tokens
   const tokenA = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const tokenB = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
@@ -62,14 +62,17 @@ export async function v2Fixture(provider: Web3Provider, [wallet]: Wallet[]): Pro
   const migrator = await deployContract(wallet, UniswapV2Migrator, [factoryV1.address, router01.address], overrides)
 
   // initialize V1
-  await factoryV1.createExchange(WETHPartner.address, overrides)
+  let id = await factoryV1.createExchange(WETHPartner.address, overrides)
+  let receipt = await provider.waitForTransaction(id.hash, 3)
+
   const WETHExchangeV1Address = await factoryV1.getExchange(WETHPartner.address)
   const WETHExchangeV1 = new Contract(WETHExchangeV1Address, JSON.stringify(UniswapV1Exchange.abi), provider).connect(
     wallet
   )
 
   // initialize V2
-  await factoryV2.createPair(tokenA.address, tokenB.address)
+  id = await factoryV2.createPair(tokenA.address, tokenB.address)
+  receipt = await provider.waitForTransaction(id.hash, 3)
   const pairAddress = await factoryV2.getPair(tokenA.address, tokenB.address)
   const pair = new Contract(pairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
