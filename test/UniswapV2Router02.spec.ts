@@ -26,7 +26,8 @@ describe('UniswapV2Router02', () => {
   // const [wallet] = provider.getWallets()
   // const loadFixture = createFixtureLoader(provider, [wallet])
 
-  const provider = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana", {chainId:111, name:""});
+  //const provider = new providers.JsonRpcProvider({url:"http://localhost:9090/solana", timeout:100000}, {chainId:111, name:""});
+  const provider = new providers.JsonRpcProvider({url:"https://proxy.testnet.neonlabs.org/solana", timeout:100000}, {chainId:111, name:""});
   // const wallet = new Wallet("0xa45bb678781eaebed1eaca0921efb31aaf66677345d1f60bf1af63d105548ead", provider)
   const wallet = new Wallet("0x769c58f303b0fe8d4513df3dc086b0f18d8076d147384337a336d18b47e21591", provider)
 
