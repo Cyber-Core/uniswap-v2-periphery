@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai'
-import { Contract } from 'ethers'
+import { Contract, providers, Wallet } from 'ethers'
 import { MaxUint256 } from 'ethers/constants'
 import { BigNumber, bigNumberify, defaultAbiCoder, formatEther } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
@@ -15,15 +15,19 @@ const overrides = {
   gasLimit: 9999999,
   gasPrice: 0
 }
+const CHAIN_ID = 111
 
 describe('ExampleFlashSwap', () => {
-  const provider = new MockProvider({
-    hardfork: 'istanbul',
-    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-    gasLimit: 9999999
-  })
-  const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  // const provider = new MockProvider({
+  //   hardfork: 'istanbul',
+  //   mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
+  //   gasLimit: 9999999
+  // })
+  // const [wallet] = provider.getWallets()
+  // const loadFixture = createFixtureLoader(provider, [wallet])
+
+  const provider = new providers.JsonRpcProvider("http://localhost:9090/solana", { name: "solana", chainId: CHAIN_ID });
+  const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider)
 
   let WETH: Contract
   let WETHPartner: Contract
@@ -31,7 +35,8 @@ describe('ExampleFlashSwap', () => {
   let WETHPair: Contract
   let flashSwapExample: Contract
   beforeEach(async function() {
-    const fixture = await loadFixture(v2Fixture)
+    // const fixture = await loadFixture(v2Fixture)
+    const fixture = await v2Fixture(provider, [wallet])
 
     WETH = fixture.WETH
     WETHPartner = fixture.WETHPartner
@@ -74,6 +79,7 @@ describe('ExampleFlashSwap', () => {
     const WETHPairToken0 = await WETHPair.token0()
     const amount0 = WETHPairToken0 === WETHPartner.address ? bigNumberify(0) : arbitrageAmount
     const amount1 = WETHPairToken0 === WETHPartner.address ? arbitrageAmount : bigNumberify(0)
+    console.log(amount0 + " <-> " + amount1 + " : " + flashSwapExample.address + " \\ " + defaultAbiCoder.encode(['uint'], [bigNumberify(1)]) + " // " + JSON.stringify(overrides))
     await WETHPair.swap(
       amount0,
       amount1,

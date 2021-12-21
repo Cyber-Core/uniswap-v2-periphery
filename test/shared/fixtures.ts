@@ -20,7 +20,7 @@ const overrides = {
   gasLimit: 9999999
 }
 
-export interface V2Fixture {
+interface V2Fixture {
   token0: Contract
   token1: Contract
   WETH: Contract
@@ -62,17 +62,14 @@ export async function v2Fixture(provider: JsonRpcProvider, [wallet]: Wallet[]): 
   const migrator = await deployContract(wallet, UniswapV2Migrator, [factoryV1.address, router01.address], overrides)
 
   // initialize V1
-  let id = await factoryV1.createExchange(WETHPartner.address, overrides)
-  let receipt = await provider.waitForTransaction(id.hash, 3)
-
+  await factoryV1.createExchange(WETHPartner.address, overrides)
   const WETHExchangeV1Address = await factoryV1.getExchange(WETHPartner.address)
   const WETHExchangeV1 = new Contract(WETHExchangeV1Address, JSON.stringify(UniswapV1Exchange.abi), provider).connect(
     wallet
   )
 
   // initialize V2
-  id = await factoryV2.createPair(tokenA.address, tokenB.address)
-  receipt = await provider.waitForTransaction(id.hash, 3)
+  await factoryV2.createPair(tokenA.address, tokenB.address)
   const pairAddress = await factoryV2.getPair(tokenA.address, tokenB.address)
   const pair = new Contract(pairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
